@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:english_words/english_words.dart'; // Ensure you import the English words library.
 import 'asset.dart'; // Import your MyImageDisplayWidget class.
 import 'layout.dart';
+import 'layout_1.dart';
+import 'todo.dart';
+import 'landing_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -85,6 +88,13 @@ class _MyHomePageState extends State<MyHomePage> {
       case 3:
         page = LayoutPage();
         break;
+      case 4:
+        page = Layout1();
+        break;
+      case 5:
+        page = TodoApp();
+      case 6:
+        page = LandingPageContent();
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -128,6 +138,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         icon: Icon(Icons.camera),
                         label: 'Layout',
                       ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.access_time_filled),
+                        label: 'Layout_1',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.schedule),
+                        label: 'Todo',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.ad_units_rounded),
+                        label: 'Landing Page',
+                      )
                     ],
                     currentIndex: selectedIndex,
                     onTap: (value) {

@@ -151,6 +151,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
+import 'dart:io';
+import 'common/folder_name.dart';
 
 void main() {
   runApp(MyImageDisplayWidget());
@@ -162,7 +164,7 @@ class MyImageDisplayWidget extends StatefulWidget {
 }
 
 class _MyImageDisplayWidgetState extends State<MyImageDisplayWidget> {
-  final String folderName = 'assets/theme/';
+  final String folderName = CommonFolder.assetTheme;
   final List<String> imagePaths = [];
   int currentIndex = 0;
   PageController pageController = PageController();
@@ -174,7 +176,8 @@ class _MyImageDisplayWidgetState extends State<MyImageDisplayWidget> {
   }
 
   Future<void> loadImages() async {
-    final manifestContent = await rootBundle.loadString('AssetManifest.json');
+    final manifestContent =
+        await rootBundle.loadString(CommonFolder.manifestFile);
     final Map<String, dynamic> manifest = json.decode(manifestContent);
 
     manifest.forEach((String key, dynamic value) {
@@ -186,6 +189,14 @@ class _MyImageDisplayWidgetState extends State<MyImageDisplayWidget> {
     });
 
     setState(() {});
+  }
+
+  String getImageName(String imagePath) {
+    final separator = Platform.pathSeparator;
+    final parts = imagePath.split(separator);
+    final imageNameWithExtension = parts.last.toLowerCase();
+    final imageName = imageNameWithExtension.replaceAll('.png', '');
+    return imageName;
   }
 
   void nextImage() {
@@ -214,6 +225,8 @@ class _MyImageDisplayWidgetState extends State<MyImageDisplayWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
@@ -223,48 +236,65 @@ class _MyImageDisplayWidgetState extends State<MyImageDisplayWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Container(
-                height: 400,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    PageView.builder(
-                      controller: pageController,
-                      itemCount: imagePaths.length,
-                      itemBuilder: (context, index) {
-                        return Image(
-                          image: AssetImage(imagePaths[index]),
-                          width: 200,
-                          height: 200,
-                        );
-                      },
-                      onPageChanged: (index) {
-                        setState(() {
-                          currentIndex = index;
-                        });
-                      },
-                    ),
-                    Positioned(
-                      left: 20,
-                      child: GestureDetector(
-                        onTap: prevImage,
-                        child: Icon(
-                          Icons.navigate_before,
-                          size: 36,
-                        ),
+              Expanded(
+                child: Container(
+                  height: screenHeight * 0.5,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PageView.builder(
+                        controller: pageController,
+                        itemCount: imagePaths.length,
+                        itemBuilder: (context, index) {
+                          final imageName = getImageName(imagePaths[index]);
+                          return Column(
+                            children: [
+                              Image(
+                                image: AssetImage(imagePaths[index]),
+                                width: double.infinity, // Full width
+                                height: screenHeight * 0.5,
+                              ),
+                              Text(
+                                imageName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Visibility(
+                                    visible: currentIndex > 0,
+                                    child: IconButton(
+                                      icon: Icon(Icons.navigate_before),
+                                      iconSize: 36,
+                                      onPressed: prevImage,
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible:
+                                        currentIndex < imagePaths.length - 1,
+                                    child: IconButton(
+                                      icon: Icon(Icons.navigate_next),
+                                      iconSize: 36,
+                                      onPressed: nextImage,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                        onPageChanged: (index) {
+                          setState(() {
+                            currentIndex = index;
+                          });
+                        },
                       ),
-                    ),
-                    Positioned(
-                      right: 20,
-                      child: GestureDetector(
-                        onTap: nextImage,
-                        child: Icon(
-                          Icons.navigate_next,
-                          size: 36,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
